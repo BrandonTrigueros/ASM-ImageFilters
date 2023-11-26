@@ -1,6 +1,7 @@
 all:
 	nasm -g -f elf64 tareaImagen.asm  -o tareaImagen.o
-	ld tareaImagen.o -o ejecutable
+	nasm -g -f elf64 filters.asm  -o filters.o
+	ld tareaImagen.o filters.o -o ejecutable
 
 .PHONY:
 
