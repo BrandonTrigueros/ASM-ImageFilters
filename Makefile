@@ -5,4 +5,4 @@ all:
 .PHONY:
 
 clean:
-	rm -f *.o ejecutable copia.bmp
+	rm -f *.o ejecutable copia.bmp copia0.bmp copia1.bmp copia2.bmp copia3.bmp
