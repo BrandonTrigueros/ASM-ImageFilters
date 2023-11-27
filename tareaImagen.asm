@@ -27,9 +27,8 @@ section .data
 
 ; --------------------- VARIABLES ---------------------
 
-	path db "jessica.bmp", NULL
 	copyPath db "copia.bmp", NULL
-	posterizationLevels dq 5	; rango de 2 a 256
+	posterizationLevels dq 4	; rango de 2 a 256
 	filter db 3	; 0 for neg, 1 for posterize, 2 for gray, 3 for black and white
 
 ; -----------------------------------------------------
@@ -56,8 +55,8 @@ section .text
 global crearCopia
 crearCopia:
 	mov [filter], sil ; Obtiene la opción del filtro
+	mov rsi, rdi
 	; Se abre el archivo
-	mov rdi, path
 	call openBMP
 
 	; Se crea el archivo de copia

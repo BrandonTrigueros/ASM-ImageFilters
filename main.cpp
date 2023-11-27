@@ -18,6 +18,7 @@ int main() {
 
   std::cout << "Ingrese la ruta de la imagen: ";
   std::cin >> path;
+  path[std::string(path).size()] = '\0';
 
   // Mostar la imagen original
   std::string fullCommand = std::string(command) + " " + path;

@@ -155,7 +155,7 @@ blackAndWhiteFilter:
 
   pixelLoopBlackAndWhite:
     call getGrayTone
-    cmp r8b, 100
+    cmp r8b, 105
     jg setWhite
     mov byte[rax], 0
     mov byte[rax+1], 0
