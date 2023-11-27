@@ -29,6 +29,7 @@ section .data
 
 	path db "jessica.bmp", NULL
 	copyPath db "copia.bmp", NULL
+	posterizationLevels dq 5	; rango de 2 a 256
 
 ; -----------------------------------------------------
 section .bss
@@ -47,6 +48,9 @@ section .bss
 
 ;------------------------------------------------------
 section .text
+	extern negFilter
+	extern posterizeFilter
+	
 global _start
 _start:
 	; Se abre el archivo
@@ -167,9 +171,11 @@ _start:
 	mov rsi, pixelMatrix
 	syscall
 
+aplicarFiltro:
 	; Se aplica el filtro
 	mov rdi, pixelMatrix
-	call negFilter
+	mov rsi, [posterizationLevels]
+	call posterizeFilter
 
 	; Se copian los bytes de la matriz de pixeles al archivo de copia
 	mov rdi, pixelMatrix
@@ -187,34 +193,6 @@ finish:
 	syscall
 
 ;------------------------------------------------------
-negFilter:
-	; recieves in rdi the direction of the matrix of pixels
-	; recieves in rdx the number of pixel to apply the filter
-	; funciona para bitCount = 24
-	push rax
-	push rcx
-	mov rax, rdi
-	mov rcx, rdx
-
-	matrixLoop:
-
-		push rcx
-		mov rcx, 3
-
-		pixelLoop:
-			mov bl, 255
-			sub bl, byte[rax]
-			mov byte[rax], bl
-			inc rax
-		loop pixelLoop
-
-		pop rcx
-
-	loop matrixLoop
-	
-	pop rcx
-	pop rax
-	ret
 
 openBMP:	; recieves in rdi the path of the file to open
 	mov rax, SYS_open
