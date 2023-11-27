@@ -1,6 +1,13 @@
+section .data
+	BLUE_coeff dd 0.114
+	GREEN_coeff dd 0.587
+  RED_coeff  dd 0.299
+
 section .text
 global negFilter
 global posterizeFilter
+
+global grayScaleFilter
 negFilter:
 	; recieves in rdi the direction of the matrix of pixels
 	; recieves in rdx the number of bytes to apply the filter
@@ -81,3 +88,47 @@ paso:
   pop rbx
   pop rax
   ret
+
+
+
+grayScaleFilter:
+	; recieves in rdi the direction of the matrix of pixels
+	; recieves in rdx the number of bytes to apply the filter
+	; funciona para bitCount = 24, byteCount = 3
+	push rax
+	push rcx
+	mov rax, rdi
+	mov rcx, rdx
+
+  movss xmm10, [BLUE_coeff]
+  movss xmm11, [GREEN_coeff]
+  movss xmm12, [RED_coeff]
+
+	pixelLoopGray:
+    movzx r8d, byte[rax]
+		cvtsi2ss xmm13, r8d ; azul
+		movzx r8d, byte[rax+1]
+		cvtsi2ss xmm14, r8d; verde
+		movzx r8d, byte[rax+2]
+		cvtsi2ss xmm15, r8d; rojo
+
+		mulss xmm10, xmm13
+		mulss xmm11, xmm14
+		mulss xmm12, xmm15
+
+		addss xmm10, xmm11
+		addss xmm10, xmm12
+
+		xor r8, r8
+		cvtss2si r8d, xmm10
+
+
+		mov byte[rax], r8b; azul
+		mov byte[rax+1], r8b; verde
+		mov byte[rax+2], r8b; rojo
+		add rax, 3
+	loop pixelLoopGray
+	
+	pop rcx
+	pop rax
+	ret

@@ -50,7 +50,7 @@ section .bss
 section .text
 	extern negFilter
 	extern posterizeFilter
-	
+	extern grayScaleFilter
 global _start
 _start:
 	; Se abre el archivo
@@ -175,7 +175,7 @@ aplicarFiltro:
 	; Se aplica el filtro
 	mov rdi, pixelMatrix
 	mov rsi, [posterizationLevels]
-	call posterizeFilter
+	call grayScaleFilter
 
 	; Se copian los bytes de la matriz de pixeles al archivo de copia
 	mov rdi, pixelMatrix
