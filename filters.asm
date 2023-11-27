@@ -4,10 +4,12 @@ section .data
   RED_coeff  dd 0.299
 
 section .text
+
 global negFilter
 global posterizeFilter
-
 global grayScaleFilter
+global blackAndWhiteFilter 
+
 negFilter:
 	; recieves in rdi the direction of the matrix of pixels
 	; recieves in rdx the number of bytes to apply the filter
@@ -47,7 +49,7 @@ posterizeFilter:
   mov rbx, rdi
   mov rcx, rdx
 
-  call paso
+  call step
 
 pixelLoopPos:
   push rcx
@@ -70,7 +72,7 @@ loop pixelLoopPos
   pop rax
   ret
 
-paso:
+step:
   ; recieves in rsi the number of levels of posterization
   push rax
   push rbx
@@ -105,23 +107,8 @@ grayScaleFilter:
   movss xmm12, [RED_coeff]
 
 	pixelLoopGray:
-    movzx r8d, byte[rax]
-		cvtsi2ss xmm13, r8d ; azul
-		movzx r8d, byte[rax+1]
-		cvtsi2ss xmm14, r8d; verde
-		movzx r8d, byte[rax+2]
-		cvtsi2ss xmm15, r8d; rojo
 
-		mulss xmm10, xmm13
-		mulss xmm11, xmm14
-		mulss xmm12, xmm15
-
-		addss xmm10, xmm11
-		addss xmm10, xmm12
-
-		xor r8, r8
-		cvtss2si r8d, xmm10
-
+    call getGrayTone
 
 		mov byte[rax], r8b; azul
 		mov byte[rax+1], r8b; verde
@@ -132,3 +119,56 @@ grayScaleFilter:
 	pop rcx
 	pop rax
 	ret
+
+getGrayTone:
+  movzx r8d, byte[rax]
+  cvtsi2ss xmm13, r8d ; azul
+  movzx r8d, byte[rax+1]
+  cvtsi2ss xmm14, r8d; verde
+  movzx r8d, byte[rax+2]
+  cvtsi2ss xmm15, r8d; rojo
+
+  mulss xmm13, xmm10
+  mulss xmm14, xmm11
+  mulss xmm15, xmm12
+
+  addss xmm13, xmm14
+  addss xmm13, xmm15
+
+  xor r8, r8
+  cvtss2si r8d, xmm13
+  ret
+
+; if getGrayTone > 100 then 255 else 0
+blackAndWhiteFilter:
+  ; recieves in rdi the direction of the matrix of pixels
+  ; recieves in rdx the number of bytes to apply the filter
+  ; funciona para bitCount = 24, byteCount = 3
+  push rax
+  push rcx
+  mov rax, rdi
+  mov rcx, rdx
+
+  movss xmm10, [BLUE_coeff]
+  movss xmm11, [GREEN_coeff]
+  movss xmm12, [RED_coeff]
+
+  pixelLoopBlackAndWhite:
+    call getGrayTone
+    cmp r8b, 100
+    jg setWhite
+    mov byte[rax], 0
+    mov byte[rax+1], 0
+    mov byte[rax+2], 0
+    jmp endIf
+    setWhite:
+      mov byte[rax], 255
+      mov byte[rax+1], 255
+      mov byte[rax+2], 255
+    endIf:
+    add rax, 3
+  loop pixelLoopBlackAndWhite
+
+  pop rcx
+  pop rax
+  ret
