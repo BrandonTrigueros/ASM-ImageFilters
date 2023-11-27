@@ -30,6 +30,7 @@ section .data
 	path db "jessica.bmp", NULL
 	copyPath db "copia.bmp", NULL
 	posterizationLevels dq 5	; rango de 2 a 256
+	filter db 3	; 0 for neg, 1 for posterize, 2 for gray, 3 for black and white
 
 ; -----------------------------------------------------
 section .bss
@@ -172,16 +173,49 @@ _start:
 	mov rsi, pixelMatrix
 	syscall
 
-aplicarFiltro:
-	; Se aplica el filtro
+applyFilter:
+	cmp byte[filter], 0
+	je negativeFilter
+
+	cmp byte[filter], 1
+	je posFilter
+
+	cmp byte[filter], 2
+	je grayscaleFilter
+
+	cmp byte[filter], 3
+	je blackWhiteFilter
+
+negativeFilter:
+	; Se aplica el filtro negativo
 	mov rdi, pixelMatrix
-	;mov rsi, [posterizationLevels]
+	call negFilter
+	jmp copyMatrix
+
+posFilter:
+	; Se aplica el filtro posterize
+	mov rdi, pixelMatrix
+	mov rsi, [posterizationLevels]
+	call posterizeFilter
+	jmp copyMatrix
+
+grayscaleFilter:
+	; Se aplica el filtro grayScale
+	mov rdi, pixelMatrix
+	call grayScaleFilter
+	jmp copyMatrix
+
+blackWhiteFilter:
+	; Se aplica el filtro blackAndWhite
+	mov rdi, pixelMatrix
 	call blackAndWhiteFilter
 
+copyMatrix:
 	; Se copian los bytes de la matriz de pixeles al archivo de copia
 	mov rdi, pixelMatrix
 	call writeToCopy
 
+closeFiles:
 	; Cerrar ambos archivos
 	mov rdi, qword[fileDescriptor]
 	call closeBMP
