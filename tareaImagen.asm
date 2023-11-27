@@ -53,8 +53,9 @@ section .text
 	extern posterizeFilter
 	extern grayScaleFilter
 	extern blackAndWhiteFilter
-global _start
-_start:
+global crearCopia
+crearCopia:
+	mov [filter], sil ; Obtiene la opción del filtro
 	; Se abre el archivo
 	mov rdi, path
 	call openBMP
@@ -223,9 +224,7 @@ closeFiles:
 	call closeBMP
 
 finish:
-	mov rax, SYS_exit
-	mov rdi, EXIT_SUCCESS
-	syscall
+	ret
 
 ;------------------------------------------------------
 
