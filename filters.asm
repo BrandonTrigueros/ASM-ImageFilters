@@ -1,7 +1,5 @@
 section .data
-	BLUE_coeff dd 0.114
-	GREEN_coeff dd 0.587
-  RED_coeff  dd 0.299
+  Coefficients dd 0.114, 0.587, 0.299, 0.0
 
 section .text
 
@@ -102,13 +100,11 @@ grayScaleFilter:
 	mov rax, rdi
 	mov rcx, rdx
 
-  movss xmm10, [BLUE_coeff]
-  movss xmm11, [GREEN_coeff]
-  movss xmm12, [RED_coeff]
+  movups xmm10, [Coefficients]
 
 	pixelLoopGray:
 
-    call getGrayTone
+    call getGrayToneVectorized
 
 		mov byte[rax], r8b; azul
 		mov byte[rax+1], r8b; verde
@@ -120,23 +116,33 @@ grayScaleFilter:
 	pop rax
 	ret
 
-getGrayTone:
-  movzx r8d, byte[rax]
-  cvtsi2ss xmm13, r8d ; azul
-  movzx r8d, byte[rax+1]
-  cvtsi2ss xmm14, r8d; verde
+getGrayToneVectorized:
+  xorps xmm13, xmm13
+
   movzx r8d, byte[rax+2]
-  cvtsi2ss xmm15, r8d; rojo
+  cvtsi2ss xmm13, r8d ; rojo
+  orps xmm14, xmm13
+  psllq xmm14, 32
 
-  mulss xmm13, xmm10
-  mulss xmm14, xmm11
-  mulss xmm15, xmm12
+  movzx r8d, byte[rax+1]
+  cvtsi2ss xmm13, r8d; verde
+  orps xmm14, xmm13
+  pslldq xmm14, 4
 
-  addss xmm13, xmm14
-  addss xmm13, xmm15
+  movzx r8d, byte[rax]
+  cvtsi2ss xmm13, r8d; azul
+  orps xmm14, xmm13
+
+  vmulps xmm0, xmm14, xmm10
+
+  xorps xmm13, xmm13
+  xorps xmm14, xmm14
+
+  vhaddps xmm1, xmm0, xmm14
+  vhaddps xmm2, xmm1, xmm13
 
   xor r8, r8
-  cvtss2si r8d, xmm13
+  cvtss2si r8d, xmm2
   ret
 
 ; if getGrayTone > 100 then 255 else 0
@@ -149,12 +155,10 @@ blackAndWhiteFilter:
   mov rax, rdi
   mov rcx, rdx
 
-  movss xmm10, [BLUE_coeff]
-  movss xmm11, [GREEN_coeff]
-  movss xmm12, [RED_coeff]
+  movups xmm10, [Coefficients]
 
   pixelLoopBlackAndWhite:
-    call getGrayTone
+    call getGrayToneVectorized
     cmp r8b, 105
     jg setWhite
     mov byte[rax], 0
