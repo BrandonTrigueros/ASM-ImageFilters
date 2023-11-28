@@ -1,27 +1,13 @@
 section .data
 
 ; --------------------- CONSTANTES ---------------------
-
-	LF equ 10 ; cambio de linea
 	NULL equ 0 ; caracter de final de string
-	TRUE equ 1 ; verdadero
-	FALSE equ 0 ; falso
-
-	EXIT_SUCCESS equ 0 ; codigo de exito
-
 	SYS_read equ 0 ; lectura
 	SYS_write equ 1 ; escritura
 	SYS_open equ 2 ; abrir archivo
 	SYS_close equ 3 ; cerrar archivo
-	SYS_exit equ 60 ; terminar
 	SYS_creat equ 85 ; abrir/crear archivo
-
-  OCREAT equ 0x40 ; crear archivo
-	O_APPEND equ 0x400 ; agregar al final
 	O_RDONLY equ 000000q ; solo lectura
-	O_WRONLY equ 000001q ; solo escritura
-	O_RDWR equ 000002q ; lectura y escritura
-	
 	S_IRUSR equ 00400q ; permisos de lectura
 	S_IWUSR equ 00200q ; permisos de escritura
 
@@ -36,22 +22,17 @@ section .bss
 
 	fileDescriptor resq 1
 	copyFileDescriptor resq 1
-
 	pixelDataOffset resb 4
 	width resb 4
 	height resb 4
 	bitCount resb 2
 	byteCount resb 2
-
 	ingoredBytes resb 170
 	pixelMatrix resb 10000000
 
 ;------------------------------------------------------
 section .text
-	extern negFilter
-	extern posterizeFilter
-	extern grayScaleFilter
-	extern blackAndWhiteFilter
+	extern negFilter, posterizeFilter, grayScaleFilter, blackAndWhiteFilter
 global crearCopia
 crearCopia:
 	mov [filter], sil ; Obtiene la opción del filtro
@@ -64,12 +45,12 @@ crearCopia:
 	call createBMP
 
 	; Se ignora 10 bytes
-	mov rdi, 10
+	mov edi, 10 ; Writes to a 32-bit register are always zero-extended into the 64-bit register.
 	call ignoreBytes
 
 	; Se copian los bytes ignorados al archivo de copia
 	mov rdi, ingoredBytes
-	mov rdx, 10
+	mov edx, 10 ; Writes to a 32-bit register are always zero-extended into the 64-bit register.
 	call writeToCopy
 	
 
@@ -77,72 +58,72 @@ crearCopia:
 	mov rdi, qword[fileDescriptor]
 	mov rax, SYS_read
 	mov rsi, pixelDataOffset
-	mov rdx, 4
+	mov edx, 4 ; Writes to a 32-bit register are always zero-extended into the 64-bit register.
 	syscall
 
 	; Se copia el offset al archivo de copia
 	mov rdi, pixelDataOffset
-	mov rdx, 4
+	mov edx, 4 ; Writes to a 32-bit register are always zero-extended into the 64-bit register.
 	call writeToCopy
 
 	; Se ignora 4 bytes
-	mov rdi, 4
+	mov edi, 4 ; Writes to a 32-bit register are always zero-extended into the 64-bit register.
 	call ignoreBytes
 
 	; Se copian los bytes ignorados al archivo de copia
 	mov rdi, ingoredBytes
-	mov rdx, 4
+	mov edx, 4 ; Writes to a 32-bit register are always zero-extended into the 64-bit register.
 	call writeToCopy
 
 	; Se lee el ancho de la imagen
 	mov rdi, qword[fileDescriptor]
 	mov rax, SYS_read
 	mov rsi, width
-	mov rdx, 4
+	mov edx, 4 ; Writes to a 32-bit register are always zero-extended into the 64-bit register.
 	syscall
 
 	; Se copia el ancho de la imagen al archivo de copia
 	mov rdi, width
-	mov rdx, 4
+	mov edx, 4 ; Writes to a 32-bit register are always zero-extended into the 64-bit register.
 	call writeToCopy
 
 	; Se lee el alto de la imagenss
 	mov rdi, qword[fileDescriptor]
 	mov rax, SYS_read
 	mov rsi, height
-	mov rdx, 4
+	mov edx, 4 ; Writes to a 32-bit register are always zero-extended into the 64-bit register.
 	syscall
 
 	; Se copia el alto de la imagen al archivo de copia
 	mov rdi, height
-	mov rdx, 4
+	mov edx, 4 ; Writes to a 32-bit register are always zero-extended into the 64-bit register.
 	call writeToCopy
 
 	; Se ignora 2 bytes
-	mov rdi, 2
+	mov edi, 2 ; Writes to a 32-bit register are always zero-extended into the 64-bit register.
 	call ignoreBytes
 
 	; Se copian los bytes ignorados al archivo de copia
 	mov rdi, ingoredBytes
-	mov rdx, 2
+	mov edx, 2 ; Writes to a 32-bit register are always zero-extended into the 64-bit register.
 	call writeToCopy
 
 	; Se lee el bitCount
 	mov rdi, qword[fileDescriptor]
 	mov rax, SYS_read
 	mov rsi, bitCount
-	mov rdx, 2
+	mov edx, 2 ; Writes to a 32-bit register are always zero-extended into the 64-bit register.
 	syscall
 
 	; Se copia el bitCount al archivo de copia
 	mov rdi, bitCount
-	mov rdx, 2
+	mov edx, 2 ; Writes to a 32-bit register are always zero-extended into the 64-bit register.
 	call writeToCopy
 
 	; Calcular cantidad de bytes por pixel
 	xor rax, rax
 	mov ax, word[bitCount]
-	mov rbx, 8
+	mov ebx, 8 ; Writes to a 32-bit register are always zero-extended into the 64-bit register.
 	div rbx
 	mov word[byteCount], ax
 

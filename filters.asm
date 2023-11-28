@@ -2,11 +2,7 @@ section .data
   Coefficients dd 0.114, 0.587, 0.299, 0.0
 
 section .text
-
-global negFilter
-global posterizeFilter
-global grayScaleFilter
-global blackAndWhiteFilter 
+global negFilter, posterizeFilter, grayScaleFilter, blackAndWhiteFilter 
 
 negFilter:
 	; recieves in rdi the direction of the matrix of pixels
@@ -19,7 +15,7 @@ negFilter:
 
 	pixelLoopNeg:
 		push rcx
-		mov rcx, 3
+		mov ecx, 3  ; Writes to a 32-bit register are always zero-extended into the 64-bit register.
 
 		byteLoopNeg:
 			mov bl, 255
@@ -51,7 +47,7 @@ posterizeFilter:
 
 pixelLoopPos:
   push rcx
-  mov rcx, 3
+  mov ecx, 3 ; Writes to a 32-bit register are always zero-extended into the 64-bit register
 
   byteLoopPos:
     xor rax, rax
@@ -79,7 +75,7 @@ step:
   mov rbx, rsi
   sub rbx, 1
   xor rdx, rdx
-  mov rax, 255
+  mov eax, 255 ; Writes to a 32-bit register are always zero-extended into the 64-bit register:
   div rbx
 
   mov r10b, al
