@@ -1,12 +1,23 @@
+; UNIVERSIDAD DE COSTA RICA
+; CURSO: Lenguaje Ensamblador
+; TAREA PROGRAMADA 2
+
+; DESCRIPCIÓN:
+;   Archivo que contiene las funciones para aplicar los filtros
+
+; INTEGRANTES
+;   Brandon Trigeuros Lara C17899
+; 	Henry Rojas Fuentes C16812
+
 section .data
-  Coefficients dd 0.114, 0.587, 0.299, 0.0
+  Coefficients dd 0.114, 0.587, 0.299, 0.0 ; azul, verde, rojo
 
 section .text
 global negFilter, posterizeFilter, grayScaleFilter, blackAndWhiteFilter 
 
 negFilter:
-	; recieves in rdi the direction of the matrix of pixels
-	; recieves in rdx the number of bytes to apply the filter
+	; recibe en rdi la direccion de la matriz de pixeles
+	; recibe en rdx el numero de bytes a aplicar el filtro
 	; funciona para bitCount = 24, byteCount = 3
 	push rax
 	push rcx
@@ -15,7 +26,7 @@ negFilter:
 
 	pixelLoopNeg:
 		push rcx
-		mov ecx, 3  ; Writes to a 32-bit register are always zero-extended into the 64-bit register.
+		mov ecx, 3  ; Escrituras en un registro de 32 bits siempre se amplían a cero en el registro de 64 bits
 
 		byteLoopNeg:
 			mov bl, 255
@@ -32,9 +43,9 @@ negFilter:
 	ret
 
 posterizeFilter:
-  ; recieves in rdi the direction of the matrix of pixels
-  ; recieves in rdx the number of bytes to apply the filter
-  ; recieves in rsi the number of levels of posterization
+  ; recibe en rdi la direccion de la matriz de pixeles
+  ; recibe en rdx el numero de bytes a aplicar el filtro
+  ; recibe en rsi el numero de niveles de posterizacion
   ; funciona para bitCount = 24, byteCount = 3
   push rax
   push rcx
@@ -47,10 +58,10 @@ posterizeFilter:
 
 pixelLoopPos:
   push rcx
-  mov ecx, 3 ; Writes to a 32-bit register are always zero-extended into the 64-bit register
+  mov ecx, 3 ; Escrituras en un registro de 32 bits siempre se amplían a cero en el registro de 64 bits
 
   byteLoopPos:
-    xor rax, rax
+    xor rax, rax ; Rompimiento de dependencia innecesaria
     mov al, byte[rbx]
     div r10b
     mul r10b
@@ -67,15 +78,15 @@ loop pixelLoopPos
   ret
 
 step:
-  ; recieves in rsi the number of levels of posterization
+  ; recibe en rsi el numero de niveles de posterizacion
   push rax
   push rbx
   push rdx
 
   mov rbx, rsi
   sub rbx, 1
-  xor rdx, rdx
-  mov eax, 255 ; Writes to a 32-bit register are always zero-extended into the 64-bit register:
+  xor rdx, rdx ; Rompimiento de dependencia innecesaria
+  mov eax, 255 ; Escrituras en un registro de 32 bits siempre se amplían a cero en el registro de 64 bits
   div rbx
 
   mov r10b, al
@@ -85,12 +96,10 @@ step:
   pop rax
   ret
 
-
-
 grayScaleFilter:
-	; recieves in rdi the direction of the matrix of pixels
-	; recieves in rdx the number of bytes to apply the filter
-	; funciona para bitCount = 24, byteCount = 3
+	; recibe en rdi la direccion de la matriz de pixeles
+  ; recibe en rdx el numero de bytes a aplicar el filtro
+  ; funciona para bitCount = 24, byteCount = 3
 	push rax
 	push rcx
 	mov rax, rdi
@@ -113,38 +122,38 @@ grayScaleFilter:
 	ret
 
 getGrayToneVectorized:
-  xorps xmm13, xmm13
+  xorps xmm13, xmm13 ; Rompimiento de dependencia innecesaria
 
-  movzx r8d, byte[rax+2]
+  movzx r8d, byte[rax+2] ; Restablece los bits altos de r8 y elimina la dependencia de cualquier valor previo de r8
   cvtsi2ss xmm13, r8d ; rojo
   orps xmm14, xmm13
   psllq xmm14, 32
 
-  movzx r8d, byte[rax+1]
+  movzx r8d, byte[rax+1] ; Restablece los bits altos de r8 y elimina la dependencia de cualquier valor previo de r8
   cvtsi2ss xmm13, r8d; verde
   orps xmm14, xmm13
   pslldq xmm14, 4
 
-  movzx r8d, byte[rax]
+  movzx r8d, byte[rax] ; Restablece los bits altos de r8 y elimina la dependencia de cualquier valor previo de r8
   cvtsi2ss xmm13, r8d; azul
   orps xmm14, xmm13
 
   vmulps xmm0, xmm14, xmm10
 
-  xorps xmm13, xmm13
-  xorps xmm14, xmm14
+  xorps xmm13, xmm13 ; Rompimiento de dependencia innecesaria
+  xorps xmm14, xmm14 ; Rompimiento de dependencia innecesaria
 
   vhaddps xmm1, xmm0, xmm14
   vhaddps xmm2, xmm1, xmm13
 
-  xor r8, r8
+  xor r8, r8 ; Rompimiento de dependencia innecesaria
   cvtss2si r8d, xmm2
   ret
 
-; if getGrayTone > 100 then 255 else 0
+; si el tono de gris es mayor a 105, se pone blanco
 blackAndWhiteFilter:
-  ; recieves in rdi the direction of the matrix of pixels
-  ; recieves in rdx the number of bytes to apply the filter
+  ; recibe en rdi la direccion de la matriz de pixeles
+  ; recibe en rdx el numero de bytes a aplicar el filtro
   ; funciona para bitCount = 24, byteCount = 3
   push rax
   push rcx

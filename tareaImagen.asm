@@ -1,3 +1,16 @@
+; UNIVERSIDAD DE COSTA RICA
+; CURSO: Lenguaje Ensamblador
+; TAREA PROGRAMADA 2
+
+; DESCRIPCIÓN:
+;   Programa en lenguaje ensamblador que aplica un filtro a una imagen BMP
+;   y crea una copia de la imagen con el filtro aplicado.
+
+; INTEGRANTES
+;   Brandon Trigeuros Lara C17899
+; 	Henry Rojas Fuentes C16812
+
+
 section .data
 
 ; --------------------- CONSTANTES ---------------------
@@ -15,7 +28,7 @@ section .data
 
 	copyPath db "copia.bmp", NULL
 	posterizationLevels dq 4	; rango de 2 a 256
-	filter db 3	; 0 for neg, 1 for posterize, 2 for gray, 3 for black and white
+	filter db 3	; 0 para negativo, 1 para posterize, 2 para grayscale, 3 para black and white
 
 ; -----------------------------------------------------
 section .bss
@@ -33,6 +46,8 @@ section .bss
 ;------------------------------------------------------
 section .text
 	extern negFilter, posterizeFilter, grayScaleFilter, blackAndWhiteFilter
+
+; Función principal: crea una copia de la imagen BMP con el filtro aplicado
 global crearCopia
 crearCopia:
 	mov [filter], sil ; Obtiene la opción del filtro
@@ -45,90 +60,88 @@ crearCopia:
 	call createBMP
 
 	; Se ignora 10 bytes
-	mov edi, 10 ; Writes to a 32-bit register are always zero-extended into the 64-bit register.
+	mov edi, 10 ;  Escrituras en un registro de 32 bits siempre se amplían a cero en el registro de 64 bits
 	call ignoreBytes
 
 	; Se copian los bytes ignorados al archivo de copia
 	mov rdi, ingoredBytes
-	mov edx, 10 ; Writes to a 32-bit register are always zero-extended into the 64-bit register.
+	mov edx, 10 ;  Escrituras en un registro de 32 bits siempre se amplían a cero en el registro de 64 bits
 	call writeToCopy
-	
 
 	; Se lee el offset de los datos de los pixeles
 	mov rdi, qword[fileDescriptor]
 	mov rax, SYS_read
 	mov rsi, pixelDataOffset
-	mov edx, 4 ; Writes to a 32-bit register are always zero-extended into the 64-bit register.
+	mov edx, 4 ;  Escrituras en un registro de 32 bits siempre se amplían a cero en el registro de 64 bits
 	syscall
 
 	; Se copia el offset al archivo de copia
 	mov rdi, pixelDataOffset
-	mov edx, 4 ; Writes to a 32-bit register are always zero-extended into the 64-bit register.
+	mov edx, 4 ;  Escrituras en un registro de 32 bits siempre se amplían a cero en el registro de 64 bits
 	call writeToCopy
 
 	; Se ignora 4 bytes
-	mov edi, 4 ; Writes to a 32-bit register are always zero-extended into the 64-bit register.
+	mov edi, 4 ;  Escrituras en un registro de 32 bits siempre se amplían a cero en el registro de 64 bits
 	call ignoreBytes
 
 	; Se copian los bytes ignorados al archivo de copia
 	mov rdi, ingoredBytes
-	mov edx, 4 ; Writes to a 32-bit register are always zero-extended into the 64-bit register.
+	mov edx, 4 ;  Escrituras en un registro de 32 bits siempre se amplían a cero en el registro de 64 bits
 	call writeToCopy
 
 	; Se lee el ancho de la imagen
 	mov rdi, qword[fileDescriptor]
 	mov rax, SYS_read
 	mov rsi, width
-	mov edx, 4 ; Writes to a 32-bit register are always zero-extended into the 64-bit register.
+	mov edx, 4 ;  Escrituras en un registro de 32 bits siempre se amplían a cero en el registro de 64 bits
 	syscall
 
 	; Se copia el ancho de la imagen al archivo de copia
 	mov rdi, width
-	mov edx, 4 ; Writes to a 32-bit register are always zero-extended into the 64-bit register.
+	mov edx, 4 ;  Escrituras en un registro de 32 bits siempre se amplían a cero en el registro de 64 bits
 	call writeToCopy
 
 	; Se lee el alto de la imagenss
 	mov rdi, qword[fileDescriptor]
 	mov rax, SYS_read
 	mov rsi, height
-	mov edx, 4 ; Writes to a 32-bit register are always zero-extended into the 64-bit register.
+	mov edx, 4 ;  Escrituras en un registro de 32 bits siempre se amplían a cero en el registro de 64 bits
 	syscall
 
 	; Se copia el alto de la imagen al archivo de copia
 	mov rdi, height
-	mov edx, 4 ; Writes to a 32-bit register are always zero-extended into the 64-bit register.
+	mov edx, 4 ;  Escrituras en un registro de 32 bits siempre se amplían a cero en el registro de 64 bits
 	call writeToCopy
 
 	; Se ignora 2 bytes
-	mov edi, 2 ; Writes to a 32-bit register are always zero-extended into the 64-bit register.
+	mov edi, 2 ;  Escrituras en un registro de 32 bits siempre se amplían a cero en el registro de 64 bits
 	call ignoreBytes
 
 	; Se copian los bytes ignorados al archivo de copia
 	mov rdi, ingoredBytes
-	mov edx, 2 ; Writes to a 32-bit register are always zero-extended into the 64-bit register.
+	mov edx, 2 ;  Escrituras en un registro de 32 bits siempre se amplían a cero en el registro de 64 bits
 	call writeToCopy
 
 	; Se lee el bitCount
 	mov rdi, qword[fileDescriptor]
 	mov rax, SYS_read
 	mov rsi, bitCount
-	mov edx, 2 ; Writes to a 32-bit register are always zero-extended into the 64-bit register.
+	mov edx, 2 ;  Escrituras en un registro de 32 bits siempre se amplían a cero en el registro de 64 bits
 	syscall
 
 	; Se copia el bitCount al archivo de copia
 	mov rdi, bitCount
-	mov edx, 2 ; Writes to a 32-bit register are always zero-extended into the 64-bit register.
+	mov edx, 2 ;  Escrituras en un registro de 32 bits siempre se amplían a cero en el registro de 64 bits
 	call writeToCopy
 
 	; Calcular cantidad de bytes por pixel
-	xor rax, rax
-	mov ax, word[bitCount]
-	mov ebx, 8 ; Writes to a 32-bit register are always zero-extended into the 64-bit register.
-	div rbx
-	mov word[byteCount], ax
+	xor rax, rax ; Rompimiento de dependencia innecesaria
+	mov ax, word [bitCount]
+	shr ax, 3  ; Hacer un desplazamiento a la derecha de 3 bits (equivalente a dividir por 8)
+	mov word [byteCount], ax
 
 	; Calcular bytes restantes a ignorar
-	xor rax, rax
+	xor rax, rax ; Rompimiento de dependencia innecesaria
 	mov eax, dword[pixelDataOffset]
 	sub eax, 30
 
@@ -142,7 +155,7 @@ crearCopia:
 	call writeToCopy
 
 	; Calculo de la cantidad de bytes a leer desde la matriz de pixeles
-	xor rdx, rdx
+	xor rdx, rdx ; Rompimiento de dependencia innecesaria
 	mov eax, dword[width]
 	mul dword[height]
 	mul dword[byteCount]
@@ -154,6 +167,7 @@ crearCopia:
 	mov rsi, pixelMatrix
 	syscall
 
+; Se aplica el filtro dependiendo del valor del filtro que se pasa desde C++
 applyFilter:
 	cmp byte[filter], 0
 	je negativeFilter
@@ -208,30 +222,32 @@ finish:
 
 ;------------------------------------------------------
 
-openBMP:	; recieves in rdi the path of the file to open
+; Función que abre un archivo BMP
+openBMP:	; recibe en rdi la dirección del path del archivo a abrir
 	mov rax, SYS_open
 	mov rsi, O_RDONLY
 	syscall
 	cmp rax, 0
-	jl finish
+	jl finish ; Uso de saltos en el caso menos probable al hacer una comparación
 	mov qword[fileDescriptor], rax
 	ret
 
-closeBMP: ; recieves in rdi the file descriptor to close
+; Función que cierra un archivo BMP
+closeBMP: ; recibe en rdi el file descriptor del archivo a cerrar
 	mov rax, SYS_close
 	syscall
 	ret
 
-createBMP: ; recieves in rdi the path of the file to create
+createBMP: ; recibe en rdi la dirección del path del archivo a crear
 	mov rax, SYS_creat
 	mov rsi, S_IRUSR | S_IWUSR
 	syscall
 	cmp rax, 0
-	jl finish
+	jl finish  ; uso de saltos en el caso menos probable al hacer una comparación
 	mov qword[copyFileDescriptor], rax
 	ret
 
-ignoreBytes: ; recieves in rdi the number of bytes to ignore
+ignoreBytes: ; recibe en rdi la cantidad de bytes a ignorar
 	mov rdx, rdi
 	mov rdi, qword[fileDescriptor]
 	mov rax, SYS_read
@@ -240,8 +256,8 @@ ignoreBytes: ; recieves in rdi the number of bytes to ignore
 	ret
 
 writeToCopy:
-; recieves in rdi the direction of the bytes to write
-; recieves in rdx the number of bytes to write
+; recibe en rdi la dirección del arreglo de bytes a escribir
+; recibe en rdx la cantidad de bytes a escribir
 	mov rax, SYS_write
 	mov rsi, rdi
 	mov rdi, qword[copyFileDescriptor]

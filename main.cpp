@@ -1,3 +1,18 @@
+
+// UNIVERSIDAD DE COSTA RICA
+// CURSO: Lenguaje Ensamblador
+// TAREA PROGRAMADA 2
+
+// DESCRIPCIÓN:
+//  Programa que aplica los filtros de escala de grises, negativo, espejo y
+//  alto contraste a una imagen BMP. El programa crea una copia de la imagen
+//  original y aplica los filtros a la copia. Luego muestra en pantalla la
+//  imagen original y las copias con los filtros aplicados.
+
+// INTEGRANTES
+//  Brandon Trigeuros Lara C17899
+// 	Henry Rojas Fuentes C16812
+
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
